@@ -28,7 +28,7 @@
 | 第6章 | 文書検索と契約照会をAgentのツールにする | D：Agent |
 | 第7章 | 自分のデータでは、小さな正解集合から始める | — |
 
-記事中の実行用コードは手元で動作確認済みです。手元で再現する場合は、先に末尾のAppendixでユーザー作成から環境を準備してください。[コードとデータ生成器はこちら](https://github.com/kutsushitaneko/orajam41-in-database-ai-demo/blob/78d72d29fc5655649de6922a1415efcd21c6f2f7/README.md)です。
+記事中の実行用コードは手元で動作確認済みです。手元で再現する場合は、先に末尾のAppendixでユーザー作成から環境を準備してください。[コードとデータ生成器はこちら](https://github.com/kutsushitaneko/orajam41-in-database-ai-demo)です。
 
 ## 1. 文書の意味検索と、業務データの照会を組み合わせる
 
