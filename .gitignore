@@ -1,0 +1,22 @@
+# secrets / env
+.env
+.env.*
+.env_*
+!.env.example
+*.pem
+wallet/
+network/
+local/
+tmp/
+*.key
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+data/generated/
+
+*.pptx

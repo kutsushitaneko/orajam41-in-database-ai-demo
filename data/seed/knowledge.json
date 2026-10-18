@@ -1,0 +1,18 @@
+[
+  {"doc_id":"KB001","model":"AX-100","title":"管理画面が応答しないとき","body":"AX-100の管理画面が開かず、応答が止まった場合は、まず電源ランプとLANケーブルを確認します。次に管理端末から疎通を確認し、障害ログを保存します。業務への影響を確認せずに再起動しないでください。","revision":2,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB002","model":"AX-100","title":"E101：温度上昇の確認","body":"AX-100でE101が表示された場合は吸気口の閉塞と室温を確認します。吸気口の前を空け、温度と発生時刻を記録します。装置の分解は行わず、警告が続く場合は保守窓口へ連絡します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB003","model":"AX-100","title":"E201：電源系統の警告","body":"AX-100のE201は電源系統の警告です。電源ケーブルの接続と施設側の給電状況を確認し、ログを保存します。電源ユニットの交換は作業資格と契約の確認後に手配します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB004","model":"AX-100","title":"管理画面停止時の旧手順","body":"旧手順ではAX-100の管理画面が停止したら直ちに再起動する案内でした。この文書は廃止済みです。現行手順KB001を使用してください。","revision":1,"publication":"RETIRED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB005","model":"BX-200","title":"管理画面が応答しないとき","body":"BX-200の管理画面が応答しない場合は、管理ポートの状態と証明書の期限を確認します。AX-100とは確認箇所が異なります。ログ取得後、管理サービスの復旧方法を保守窓口へ確認します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB006","model":"BX-200","title":"E101：認証設定の確認","body":"BX-200のE101は認証設定の不整合を示します。時刻同期と認証サーバー設定を確認します。AX-100の同じコードは温度警告であり、この手順を適用しません。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB007","model":"AX-100","title":"通信が途切れるとき","body":"AX-100で通信が断続的に切れる場合は、ケーブル損傷、リンク状態、接続先スイッチのエラー数を確認します。時刻をそろえたログを取得し、設定変更前後を比較します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB008","model":"AX-100","title":"ログの保存方法","body":"AX-100の管理画面で「保守」から「ログ出力」を選択します。ファイル名と取得時刻を記録してください。ログには設定値が含まれるため、公開掲示板には添付せず、指定された保守窓口へ渡します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB009","model":"BX-200","title":"設定のバックアップ","body":"BX-200の設定変更前には、管理画面のエクスポート機能で設定を保存します。バックアップと変更履歴を対にして保管し、復元作業は機種とソフトウェア版を確認して実施します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB010","model":"CX-300","title":"ディスク残量の警告","body":"CX-300で保存容量の警告が出たら、使用量とログ保持期間を確認します。監査に必要なログを保存してから、承認された保持方針に沿って整理します。無断でファイルを削除しないでください。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB011","model":"CX-300","title":"時刻のずれを確認する","body":"CX-300のイベント時刻がずれる場合は、時刻同期サーバーへの到達性とタイムゾーンを確認します。修正前後の時刻差を記録し、ログを比較するときはその差を考慮します。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB012","model":"AX-100","title":"顧客C001向け保守連絡手順","body":"架空顧客C001では、AX-100の障害ログを収集した後、顧客内の運用責任者へ連絡します。現地訪問は対象機器の有効な契約でONSITEが含まれる場合に手配案を作成します。訪問確定には担当者の承認が必要です。","revision":1,"publication":"PUBLISHED","scope":"CUSTOMER","customer_id":"C001"},
+  {"doc_id":"KB013","model":"AX-100","title":"顧客C002専用の管理画面復旧手順","body":"架空顧客C002のAX-100管理画面停止時には、C002専用の運用手順書に従って責任者へ連絡します。検証用識別語はC002_ONLY_ORCHIDです。この文書はC001には開示しません。","revision":1,"publication":"PUBLISHED","scope":"CUSTOMER","customer_id":"C002"},
+  {"doc_id":"KB014","model":"AX-100","title":"管理画面復旧の検討中手順","body":"検討中のAX-100管理画面復旧案です。検証用識別語はDRAFT_ONLY_MAPLEです。未承認のため公開手順として案内してはいけません。","revision":3,"publication":"DRAFT","scope":"PUBLIC","customer_id":null},
+  {"doc_id":"KB015","model":"AX-100","title":"社内担当者用の調査メモ","body":"社内限定のAX-100調査メモです。検証用識別語はINTERNAL_ONLY_CEDARです。顧客向け回答の根拠には利用しません。","revision":1,"publication":"PUBLISHED","scope":"INTERNAL","customer_id":null},
+  {"doc_id":"KB016","model":"AX-100","title":"ログ名の特殊文字の扱い","body":"ログ名がowner's_logの場合も文字を変更せず記録します。\n画面の表示例は「温度,電源」と「\"警告\"」です。CSVへの保存時も改行、カンマ、引用符を保持してください。","revision":1,"publication":"PUBLISHED","scope":"PUBLIC","customer_id":null}
+]

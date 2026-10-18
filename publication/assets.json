@@ -1,0 +1,68 @@
+[
+  {
+    "source": "article/figures/F01.png",
+    "path": "assets/F01.e5cec681af30.png",
+    "sha256": "e5cec681af30a30f2787c4a85f7de0822cea2020c7df81c1de9a238920505f39",
+    "url": null
+  },
+  {
+    "source": "article/figures/F02.png",
+    "path": "assets/F02.c0b254601ef7.png",
+    "sha256": "c0b254601ef7ac632fb4388c5867345f1e2b38f5e44dec736c9c8dcbf31d78a0",
+    "url": null
+  },
+  {
+    "source": "article/figures/F04.png",
+    "path": "assets/F04.07ac12d07ba4.png",
+    "sha256": "07ac12d07ba48a3a361c4f660048268f18b6a682fa277d5b178b427dbfa97f58",
+    "url": null
+  },
+  {
+    "source": "article/figures/F05.png",
+    "path": "assets/F05.7ab8efb3e33a.png",
+    "sha256": "7ab8efb3e33ad0e671d428002eca1fc67a9a1669546080177367423e6a4cdaf6",
+    "url": null
+  },
+  {
+    "source": "article/figures/F06.png",
+    "path": "assets/F06.b74e4557dfba.png",
+    "sha256": "b74e4557dfba47deef85f8da9a92ca251e7ef1c802815aa474002bbceb17a3f1",
+    "url": null
+  },
+  {
+    "source": "article/figures/F07.png",
+    "path": "assets/F07.490347f9a3a3.png",
+    "sha256": "490347f9a3a3f019e482a34b7048644fe46080b58609c10f351ceb9c784c34e5",
+    "url": null
+  },
+  {
+    "source": "article/figures/IMG01.png",
+    "path": "assets/IMG01.8394f8dabafe.png",
+    "sha256": "8394f8dabafe62399f924d6a0374747e5696d15ce927ab502a6140dac199b989",
+    "url": null
+  },
+  {
+    "source": "article/figures/IMG02.png",
+    "path": "assets/IMG02.d31e2d29d7d1.png",
+    "sha256": "d31e2d29d7d13024e207b07aa6dd2df7737f4bd81d85a93b957e1517b1744545",
+    "url": null
+  },
+  {
+    "source": "article/screenshots/S01.png",
+    "path": "assets/S01.f1b62d887e84.png",
+    "sha256": "f1b62d887e84a3deda76a98e9710f065305d6c70d2cb527defc9dc991e3fe4c9",
+    "url": null
+  },
+  {
+    "source": "article/screenshots/S02-1.png",
+    "path": "assets/S02-1.f6a8692ff034.png",
+    "sha256": "f6a8692ff0346109d1a2628b3fba42da51fe55458db77a7093e3144adad081e0",
+    "url": null
+  },
+  {
+    "source": "article/screenshots/S02-2.png",
+    "path": "assets/S02-2.9daf3e42fc2e.png",
+    "sha256": "9daf3e42fc2efb11b04649e25c511400f77a3c3990ef9e335c95a27f9f1a5339",
+    "url": null
+  }
+]

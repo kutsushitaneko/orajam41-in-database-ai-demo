@@ -1,0 +1,8 @@
+CREATE OR REPLACE PACKAGE OJ41_AGENT_CTX AUTHID CURRENT_USER AS
+  PROCEDURE start_run(p_device VARCHAR2, p_question VARCHAR2, p_run_id VARCHAR2);
+  FUNCTION contract_info(p_device VARCHAR2) RETURN CLOB;
+  FUNCTION knowledge_search(p_device VARCHAR2) RETURN CLOB;
+  PROCEDURE clear_run;
+  FUNCTION trace RETURN CLOB;
+END;
+/
