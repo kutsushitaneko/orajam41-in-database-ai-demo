@@ -1,6 +1,7 @@
 {
-  "status": "unpublished_candidate",
+  "status": "awaiting_qiita_publication",
   "canonical": "draft",
   "item_id": null,
-  "url": null
+  "url": null,
+  "body_sha256": "60f2f6cd4bf881f93f1b3279caf7ffb4a1af2cd9547a32c2bceb4b9648e2027b"
 }
