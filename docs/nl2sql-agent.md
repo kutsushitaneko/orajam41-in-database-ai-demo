@@ -14,7 +14,7 @@ DBからOCI GenAIへはリソースプリンシパルを使います。モデル
 | オブジェクト | 役割 |
 |---|---|
 | OJ41_NL2SQL_BASELINE / OJ41_NL2SQL_TUNED | 同じ質問・同じ参照対象でANNOTATIONの有無を比較する専用プロファイル |
-| OJ41_BUSINESS_AI | OJ41_VISIBLE_CONTRACTSを対象にした本編用AIプロファイル |
+| OJ41_BUSINESS_AI | 固定SQLのPL/SQLツールを使うAgent用のLLM接続・生成設定 |
 | OJ41_AGENT_CTX | 対象機器・質問・実行ID・呼び出し回数をセッション内に保持するパッケージ |
 | OJ41_CONTRACT_TOOL | 閲覧可能な契約を読み、有効性と現地保守対象を返す関数 |
 | OJ41_KNOWLEDGE_TOOL | 対象機種に合う公開文書と顧客専用手順を検索する関数 |
@@ -24,6 +24,8 @@ DBからOCI GenAIへはリソースプリンシパルを使います。モデル
 `--setup`は専用のパッケージ・関数・AI設定を更新します。環境確認用オブジェクトは保持します。SQLクライアントからの初回準備は、`sql/setup/60_agent_context.sql`、61、62、63の順に実行し、続けて生成された`local/64_business_ai.sql`を実行します。64には環境固有値が入るためGit管理外です。続けて`local/65_nl2sql_profiles.sql`で比較用プロファイルと注釈を作成します。64と65は初回作成用で、再設定にはPythonの`--setup`を使います。
 
 ツール2個、AIプロファイル、Agent、Task、Teamの登録SQLは[64_business_ai_template.sql](../sql/setup/64_business_ai_template.sql)でも確認できます。これは初回作成用のテンプレートです。コンパートメントのプレースホルダーを置き換え、リージョン・モデルを確認して使います。Pythonの準備処理で登録済みの場合は再実行せず、定義の参照に使ってください。FUNCTIONの入口は[62_contract_tool.sql](../sql/setup/62_contract_tool.sql)と[63_knowledge_tool.sql](../sql/setup/63_knowledge_tool.sql)、固定SQLを含む処理本体は[61_agent_context_body.sql](../sql/setup/61_agent_context_body.sql)です。
+
+`OJ41_BUSINESS_AI`にはLLMの接続先・認証・生成パラメータだけを設定します。Agentは登録済みのPL/SQL関数を呼び、その内部で固定SQLを実行するため、NL2SQL用の`object_list`と`enforce_object_list`は指定しません。閲覧範囲はツールの固定SQLが参照するビューとPL/SQLの検査で制御します。準備処理はこの専用プロファイルを再作成するため、デモの実行中には準備処理を実行しないでください。
 
 ## デモC：参照範囲を制限し、注釈の有無を比較する
 

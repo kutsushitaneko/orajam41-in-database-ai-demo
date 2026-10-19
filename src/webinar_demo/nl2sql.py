@@ -13,7 +13,6 @@ from webinar_demo.check_genai import text
 from webinar_demo.load_data import guard
 from webinar_demo.settings import db_parameters, load_settings
 
-PROFILE = "OJ41_BUSINESS_AI"
 VIEW = "OJ41_VISIBLE_CONTRACTS"
 COLUMNS = {"CONTRACT_ID", "DEVICE_ID", "START_DATE", "END_DATE", "STATUS", "SERVICE_SCOPE",
            "CUSTOMER_ID", "MODEL", "AS_OF_DATE", "IS_ACTIVE", "ONSITE_ELIGIBLE"}

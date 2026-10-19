@@ -9,12 +9,12 @@ from webinar_demo.case_context import case_scope, require_case
 
 import oracledb
 
-from webinar_demo.check_genai import attributes, text
+from webinar_demo.check_genai import text
 from webinar_demo.load_data import execute_block, guard
-from webinar_demo.nl2sql import PROFILE, VIEW
 from webinar_demo.rag import validate_answer
 from webinar_demo.settings import ROOT, db_parameters, load_settings, require
 
+PROFILE="OJ41_BUSINESS_AI"
 TEAM="OJ41_SUPPORT_TEAM"
 ROLE="""You are a Japanese support assistant for fictional devices.
 For each request call OJ41_LOOKUP_CONTRACT and OJ41_SEARCH_KNOWLEDGE exactly once each using the specified device ID.
@@ -30,28 +30,32 @@ An expired or remote-only contract does NOT prevent giving technical steps from 
 """
 
 
+def agent_attributes(values):
+    """LLM settings for fixed PL/SQL tools; no NL2SQL metadata or SQL allowlist."""
+    require(values,"OCI_GENAI_REGION","OCI_GENAI_MODEL_ID","OCI_GENAI_COMPARTMENT_OCID")
+    return {
+        "provider": "oci", "credential_name": "OCI$RESOURCE_PRINCIPAL",
+        "region": values["OCI_GENAI_REGION"], "model": values["OCI_GENAI_MODEL_ID"],
+        "oci_compartment_id": values["OCI_GENAI_COMPARTMENT_OCID"],
+        "temperature": 0, "max_tokens": 1600,
+    }
+
+
 def setup(conn, values):
     guard(conn)
-    require(values,"OCI_GENAI_REGION","OCI_GENAI_MODEL_ID","OCI_GENAI_COMPARTMENT_OCID")
+    attrs=agent_attributes(values)
     for name in ("60_agent_context.sql","61_agent_context_body.sql","62_contract_tool.sql","63_knowledge_tool.sql"):
         execute_block(conn,ROOT/"sql/setup"/name)
     from webinar_demo.nl2sql_compare import setup as setup_nl2sql
     setup_nl2sql(conn, values)
-    attrs=attributes(values)
-    attrs["object_list"]=[{"owner":"ORAJAM41USER","name":VIEW}]
-    attrs["max_tokens"]=1600
     with conn.cursor() as cur:
         cur.execute("SELECT name,line,text FROM user_errors WHERE name LIKE 'OJ41%' ORDER BY name,sequence")
         errors=cur.fetchall()
         if errors: raise ValueError(str(errors))
-        cur.execute("SELECT COUNT(*) FROM user_cloud_ai_profiles WHERE profile_name=:p",p=PROFILE)
-        profile_exists=bool(cur.fetchone()[0])
-        if not profile_exists:
-            cur.execute("BEGIN DBMS_CLOUD_AI.CREATE_PROFILE(profile_name=>:p,attributes=>:a); END;",p=PROFILE,a=json.dumps(attrs))
-        else:
-            for k,v in attrs.items():
-                cur.execute("BEGIN DBMS_CLOUD_AI.SET_ATTRIBUTE(profile_name=>:p,attribute_name=>:n,attribute_value=>:v); END;",
-                            p=PROFILE,n=k,v=json.dumps(v) if isinstance(v,(dict,list,bool)) else str(v))
+        # Recreate this dedicated demo profile so removed attributes do not persist.
+        # Run setup while no demo requests are in progress.
+        cur.execute("BEGIN DBMS_CLOUD_AI.DROP_PROFILE(profile_name=>:p,force=>TRUE); END;",p=PROFILE)
+        cur.execute("BEGIN DBMS_CLOUD_AI.CREATE_PROFILE(profile_name=>:p,attributes=>:a); END;",p=PROFILE,a=json.dumps(attrs))
         definitions=[
             ("TOOL","OJ41_LOOKUP_CONTRACT",dict(instruction="Look up the specified device contract. Call once; use exactly the device ID in the request.",function="OJ41_CONTRACT_TOOL")),
             ("TOOL","OJ41_SEARCH_KNOWLEDGE",dict(instruction="Search scoped knowledge for the specified device and the original request. Call once with the exact device ID.",function="OJ41_KNOWLEDGE_TOOL")),

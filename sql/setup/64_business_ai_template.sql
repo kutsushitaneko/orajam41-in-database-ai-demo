@@ -13,14 +13,7 @@ BEGIN
   "model": "xai.grok-4.3",
   "oci_compartment_id": "<OCI_GENAI_COMPARTMENT_OCID>",
   "temperature": 0,
-  "max_tokens": 1600,
-  "object_list": [
-    {
-      "owner": "ORAJAM41USER",
-      "name": "OJ41_VISIBLE_CONTRACTS"
-    }
-  ],
-  "enforce_object_list": true
+  "max_tokens": 1600
 }~');
 END;
 /
