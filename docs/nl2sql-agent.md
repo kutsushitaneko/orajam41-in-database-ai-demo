@@ -23,6 +23,8 @@ DBからOCI GenAIへはリソースプリンシパルを使います。モデル
 
 `--setup`は専用のパッケージ・関数・AI設定を更新します。環境確認用オブジェクトは保持します。SQLクライアントからの初回準備は、`sql/setup/60_agent_context.sql`、61、62、63の順に実行し、続けて生成された`local/64_business_ai.sql`を実行します。64には環境固有値が入るためGit管理外です。続けて`local/65_nl2sql_profiles.sql`で比較用プロファイルと注釈を作成します。64と65は初回作成用で、再設定にはPythonの`--setup`を使います。
 
+ツール2個、AIプロファイル、Agent、Task、Teamの登録SQLは[64_business_ai_template.sql](../sql/setup/64_business_ai_template.sql)でも確認できます。これは初回作成用のテンプレートです。コンパートメントのプレースホルダーを置き換え、リージョン・モデルを確認して使います。Pythonの準備処理で登録済みの場合は再実行せず、定義の参照に使ってください。FUNCTIONの入口は[62_contract_tool.sql](../sql/setup/62_contract_tool.sql)と[63_knowledge_tool.sql](../sql/setup/63_knowledge_tool.sql)、固定SQLを含む処理本体は[61_agent_context_body.sql](../sql/setup/61_agent_context_body.sql)です。
+
 ## デモC：参照範囲を制限し、注釈の有無を比較する
 
 比較用の両プロファイルは、4つのOJ41_VISIBLEビューとOJ41_RUN、存在すればOJ41_BULK_PARTSをobject_listに指定します。object_list_mode=all、enforce_object_list=true、comments=falseを共通にし、annotationsだけをfalseからtrueへ変えます。ベース表と制限対象の文書を複製した大量ロード表は除外します。未分類のOJ41表・ビューがある場合は準備を停止します。
