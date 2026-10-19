@@ -4,14 +4,14 @@
 BEGIN OJ41_CASE_CTX.open_case('SR001'); END;
 /
 
--- C1: object_list=[{"owner":"ORAJAM41USER"}], comments=false. Display only.
--- Both profiles omit object_list_mode (default all) and enforce_object_list.
+-- C1: reviewed views + unrestricted tables; annotations=false. Display only.
+-- Both profiles: object_list_mode=all, enforce_object_list=true, comments=false.
 SELECT DBMS_CLOUD_AI.GENERATE(
   prompt=>'この受付案件の顧客について、基準日時点で現地保守の対象となるサーバーの保守登録番号を昇順で教えてください。',
   profile_name=>'OJ41_NL2SQL_BASELINE',action=>'showsql') AS generated_sql
 FROM dual;
 
--- C2: SAME question and SAME owner-only object_list; only comments=true differs.
+-- C2: SAME question and SAME object_list; only annotations=true differs.
 SELECT DBMS_CLOUD_AI.GENERATE(
   prompt=>'この受付案件の顧客について、基準日時点で現地保守の対象となるサーバーの保守登録番号を昇順で教えてください。',
   profile_name=>'OJ41_NL2SQL_TUNED',action=>'showsql') AS generated_sql

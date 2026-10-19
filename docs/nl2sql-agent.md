@@ -13,7 +13,7 @@ DBからOCI GenAIへはリソースプリンシパルを使います。モデル
 
 | オブジェクト | 役割 |
 |---|---|
-| OJ41_NL2SQL_BASELINE / OJ41_NL2SQL_TUNED | 同じ質問で同じowner指定でコメントの有無を比較する専用プロファイル |
+| OJ41_NL2SQL_BASELINE / OJ41_NL2SQL_TUNED | 同じ質問・同じ参照対象でANNOTATIONの有無を比較する専用プロファイル |
 | OJ41_BUSINESS_AI | OJ41_VISIBLE_CONTRACTSを対象にした本編用AIプロファイル |
 | OJ41_AGENT_CTX | 対象機器・質問・実行ID・呼び出し回数をセッション内に保持するパッケージ |
 | OJ41_CONTRACT_TOOL | 閲覧可能な契約を読み、有効性と現地保守対象を返す関数 |
@@ -21,17 +21,20 @@ DBからOCI GenAIへはリソースプリンシパルを使います。モデル
 | OJ41_LOOKUP_CONTRACT／OJ41_SEARCH_KNOWLEDGE | 上記関数を公開するSelect AI Agentのツール |
 | OJ41_SUPPORT_AGENT／TASK／TEAM | 単一エージェント、タスク、チーム |
 
-`--setup`は専用のパッケージ・関数・AI設定を更新します。環境確認用オブジェクトは保持します。SQLクライアントからの初回準備は、`sql/setup/60_agent_context.sql`、61、62、63の順に実行し、続けて生成された`local/64_business_ai.sql`を実行します。64には環境固有値が入るためGit管理外です。続けて`local/65_nl2sql_profiles.sql`で比較用プロファイルとコメントを作成します。64と65は初回作成用で、再設定にはPythonの`--setup`を使います。
+`--setup`は専用のパッケージ・関数・AI設定を更新します。環境確認用オブジェクトは保持します。SQLクライアントからの初回準備は、`sql/setup/60_agent_context.sql`、61、62、63の順に実行し、続けて生成された`local/64_business_ai.sql`を実行します。64には環境固有値が入るためGit管理外です。続けて`local/65_nl2sql_profiles.sql`で比較用プロファイルと注釈を作成します。64と65は初回作成用で、再設定にはPythonの`--setup`を使います。
 
-## デモC：質問はそのままで、同じowner指定でコメントの有無を比較する
+## デモC：参照範囲を制限し、注釈の有無を比較する
 
-`business_ai --setup`は比較用2プロファイルも作成・再作成します。既存のAgent用プロファイルとは分けています。両方ともobject_listはORAJAM41USERのownerのみを指定し、object_list_mode（既定all）とenforce_object_listを省略します。BASELINEはcomments=false、TUNEDはcomments=trueで、差はこの属性だけです。列コメントで「保守登録番号」「現地保守対象」「基準日」の意味を伝えます。annotationsや追加指示は今回使っていません。
+比較用の両プロファイルは、4つのOJ41_VISIBLEビューとOJ41_RUN、存在すればOJ41_BULK_PARTSをobject_listに指定します。object_list_mode=all、enforce_object_list=true、comments=falseを共通にし、annotationsだけをfalseからtrueへ変えます。ベース表と制限対象の文書を複製した大量ロード表は除外します。未分類のOJ41表・ビューがある場合は準備を停止します。
+
+ビュー全体と6列にdescription注釈を登録します。既存のCOMMENTが残っていても、この比較ではLLMへの入力に含めません。準備と繰り返し検証は次のコマンドで行えます。
 
 ```powershell
+uv run --locked python -m webinar_demo.evaluate_nl2sql_annotations --setup --repeats 3
 uv run --locked python -m webinar_demo.nl2sql_compare --case-id SR001
 ```
 
-両プロファイルへ同じ自然文を送り、設定前の応答は表示のみ、設定後のSQLだけ検査・実行して正解と照合します。結果はlocal/nl2sql-comparison.jsonです。事前検証ではコメントなし3回ともSERIAL_NOを選び、コメントあり3回ともDEVICE_IDで正解4件と一致しました。出力の再現を保証するものではありません。object_list_mode=automatedはこの比較では使いません。Pythonの実行前検査は閲覧用ビューだけを許可し、生成時にowner全体を指定する比較条件とは区別します。
+前者はlocal/nl2sql-annotations-evaluation.jsonへ、後者はlocal/nl2sql-comparison.jsonへ保存します。注釈なしの応答は表示だけとし、注釈ありの生成SQLを構文木で検査して正解と照合します。生成側の参照候補は6オブジェクトですが、Python検証器が実行を許すSQLは、今回の契約照会に必要なOJ41_VISIBLE_CONTRACTS単独の照会に限定します。検証結果と対象選定の理由は[nl2sql-annotations-validation.md](nl2sql-annotations-validation.md)を参照してください。
 
 以下の各ケースも、質問にビュー名・列名・SQL生成ルールを追加せず、TUNEDプロファイルに質問文だけを渡します。
 
@@ -49,7 +52,7 @@ uv run --locked python -m webinar_demo.nl2sql --case-id SR001 --case expired
 | other：別顧客DEV009の契約 | 0件 |
 | expired：現在有効ではない契約 | DEV002、DEV003、DEV007 |
 
-owner指定・コメントありでの再検証では、onsite・counts・expiredは正解と一致しました。otherはDEV009をMODELと比較する誤りがあり、質問別の条件列検査で実行を止めました。以下の正解は生成の保証ではなく照合基準です。
+注釈を調整した後の繰り返し検証では、4つの質問とSR002での現地保守照会が各3回とも正解に一致しました。LLMの応答には変動があるため、以下の正解は照合基準として使います。
 
 「現在」はOJ41_RUNの基準日2026-10-15を指します。`IS_ACTIVE`は契約状態と開始日・終了日を含めた判定、`ONSITE_ELIGIBLE`はさらにサービス範囲を考慮した判定です。ライフサイクル上の`STATUS='ACTIVE'`だけで現時点の有効性を判断しません。例えばDEV002はSTATUSがACTIVEでも期限切れです。
 
