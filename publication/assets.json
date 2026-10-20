@@ -64,5 +64,60 @@
     "path": "assets/S02-2.9daf3e42fc2e.png",
     "sha256": "9daf3e42fc2efb11b04649e25c511400f77a3c3990ef9e335c95a27f9f1a5339",
     "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/S02-2.9daf3e42fc2e.png"
+  },
+  {
+    "source": "assets/qiita-1856bbf18d28.png",
+    "path": "assets/qiita-1856bbf18d28-white.f586a9e5a799.png",
+    "sha256": "f586a9e5a7997787c2ac24931d2ff57dd67c9c18f543b9b1d7d3220b33a10abf",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-1856bbf18d28-white.f586a9e5a799.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "assets/qiita-42da21539893.png",
+    "path": "assets/qiita-42da21539893-white.5c1d20af4572.png",
+    "sha256": "5c1d20af4572b926bea005226f220e30f40a1a0efda6d3430964fda45049cd4a",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-42da21539893-white.5c1d20af4572.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "assets/qiita-6ed040081965.png",
+    "path": "assets/qiita-6ed040081965-white.b58d9a72bcf1.png",
+    "sha256": "b58d9a72bcf130c6716db9b1df84113978e1cc97b6c9bf65213b643b5b1a4429",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-6ed040081965-white.b58d9a72bcf1.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "assets/qiita-90c9f004f1bb.png",
+    "path": "assets/qiita-90c9f004f1bb-white.972dc29492ca.png",
+    "sha256": "972dc29492ca24ec0abab7cc3f5b700cd2b8fd40da76ad6b26480d0c8967e37d",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-90c9f004f1bb-white.972dc29492ca.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "assets/qiita-a3013a26d852.png",
+    "path": "assets/qiita-a3013a26d852-white.d4c20a480eba.png",
+    "sha256": "d4c20a480eba1dcd76563d2a21846fe24cf5124d94838470542478781a23fc7f",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-a3013a26d852-white.d4c20a480eba.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "assets/qiita-a5cd822b061e.png",
+    "path": "assets/qiita-a5cd822b061e-white.7531d380bdfc.png",
+    "sha256": "7531d380bdfc45c8f122ab14344dfa71c8b215fae524dd6fcb4d7bb0551a0ecd",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-a5cd822b061e-white.7531d380bdfc.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "assets/qiita-be4f1e8ebddc.png",
+    "path": "assets/qiita-be4f1e8ebddc-white.7366e9e741cf.png",
+    "sha256": "7366e9e741cf13de705a440416197a6b9de5d53e41e6df414b89346d68e14e30",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-be4f1e8ebddc-white.7366e9e741cf.png",
+    "processing": "Composite transparency onto white; original dimensions retained"
+  },
+  {
+    "source": "article/figures/ticket-view-scope.png",
+    "path": "assets/ticket-view-scope.604c54bf6bd5.png",
+    "sha256": "604c54bf6bd5e1c68df3c2280e62b62dd3889c2a9749dacb57b0d1ce5451286f",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/ticket-view-scope.604c54bf6bd5.png"
   }
 ]
