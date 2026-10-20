@@ -119,5 +119,23 @@
     "path": "assets/ticket-view-scope.604c54bf6bd5.png",
     "sha256": "604c54bf6bd5e1c68df3c2280e62b62dd3889c2a9749dacb57b0d1ce5451286f",
     "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/ticket-view-scope.604c54bf6bd5.png"
+  },
+  {
+    "source": "https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/74534/0693e905-f02a-4ebd-80cf-18367ceb1608.png",
+    "path": "assets/qiita-d528c122c1ab.png",
+    "sha256": "d528c122c1ab08a000d4fd9d04f7e71648e7217bb26048adb1d920cde20deb60",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-d528c122c1ab.png"
+  },
+  {
+    "source": "https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/74534/daf8a735-82d1-4d03-a4b2-697c22acc301.png",
+    "path": "assets/qiita-8009679d6c45.png",
+    "sha256": "8009679d6c455dd15ef3336aba512964cf8f492bb4ac9883fdbd45e52d3dc8fe",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-8009679d6c45.png"
+  },
+  {
+    "source": "https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/74534/478963c0-6cd6-484d-9c14-886ea5679dfd.png",
+    "path": "assets/qiita-fb34185c62f3.png",
+    "sha256": "fb34185c62f36a10ecb250f776e385a1859769e671da46e52f87cd337ef643eb",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-fb34185c62f3.png"
   }
 ]
