@@ -137,5 +137,11 @@
     "path": "assets/qiita-fb34185c62f3.png",
     "sha256": "fb34185c62f36a10ecb250f776e385a1859769e671da46e52f87cd337ef643eb",
     "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/qiita-fb34185c62f3.png"
+  },
+  {
+    "source": "rag-context-recall-corrected.png",
+    "path": "assets/rag-context-recall.d9bfb3f4e9fe.png",
+    "sha256": "d9bfb3f4e9fe343b5b2f4f3d1963da2a5a549ae201d4a38fa4f2fcd45fa80019",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/rag-context-recall.d9bfb3f4e9fe.png"
   }
 ]
