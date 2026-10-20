@@ -44,7 +44,9 @@ def agent_attributes(values):
 def setup(conn, values):
     guard(conn)
     attrs=agent_attributes(values)
-    for name in ("60_agent_context.sql","61_agent_context_body.sql","62_contract_tool.sql","63_knowledge_tool.sql"):
+    for name in ("60_agent_context.sql","61_agent_context_body.sql","62_contract_tool.sql","63_knowledge_tool.sql",
+                 "65_answer_guard.sql","66_answer_guard_body.sql","67_rag.sql","68_rag_body.sql",
+                 "80_checked_agent.sql","81_checked_agent_body.sql"):
         execute_block(conn,ROOT/"sql/setup"/name)
     from webinar_demo.nl2sql_compare import setup as setup_nl2sql
     setup_nl2sql(conn, values)
