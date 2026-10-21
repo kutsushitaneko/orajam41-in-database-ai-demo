@@ -137,6 +137,8 @@ def validate_trace(raw, trace):
         for quote in quotes:
             if len(quote)>=8 and any(normalized(quote) in normalized(sources[i]) for i in ids):
                 commitment_text=commitment_text.replace("「"+quote+"」", "")
+        # A requirement for approval is not a claim that a visit is confirmed.
+        commitment_text=re.sub(r"訪問確定には(?:担当者の|担当者)?承認が必要です。", "", commitment_text)
         if re.search(r"訪問確定|予約済|手配済",commitment_text): raise ValueError("承認前の確約を含みます。")
         answer=dict(status="answered",claims=[],text=body,citations=sorted(ids))
     if not docs and answer["status"]!="insufficient": raise ValueError("根拠なしの回答です。")

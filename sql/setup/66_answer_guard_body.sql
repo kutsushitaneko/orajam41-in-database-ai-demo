@@ -101,6 +101,8 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
         END LOOP;
       END IF;
     END LOOP;
+    -- This exact approval requirement is not a commitment.
+    commitment_text:=REGEXP_REPLACE(commitment_text,'訪問確定には(担当者の|担当者)?承認が必要です。','');
     IF REGEXP_LIKE(commitment_text,'訪問確定|予約済|手配済') THEN fail('Unapproved commitment'); END IF;
     IF outer_obj IS NOT NULL AND outer_obj.has('claims') THEN
       checked := validate_json(answer,docs.to_clob());

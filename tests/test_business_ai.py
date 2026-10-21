@@ -104,3 +104,12 @@ def test_source_quote_about_visit_approval_is_not_a_commitment():
     for bad in (raw+' 訪問確定しました。',raw+' 「訪問は予約済です。」'):
         with pytest.raises(ValueError,match="確約"):
             validate_trace(bad,events)
+
+
+@pytest.mark.parametrize("approval", ["承認", "担当者承認", "担当者の承認"])
+def test_approval_requirement_outside_quote_is_not_a_commitment(approval):
+    raw=f'訪問確定には{approval}が必要です。「電源ランプとLANケーブルを確認します。」[KB001]'
+    assert validate_trace(raw,trace("Y"))["draft"]["status"]=="answered"
+    for assertion in ["訪問確定しました。", "予約済です。", "手配済です。"]:
+        with pytest.raises(ValueError,match="確約"):
+            validate_trace(raw+assertion,trace("Y"))
