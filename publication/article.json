@@ -1,7 +1,10 @@
 {
-  "status": "awaiting_qiita_publication",
-  "canonical": "draft",
-  "item_id": null,
-  "url": null,
-  "body_sha256": "317fe97e8f6c707fd03436c848c827bc0dc5c2d90b72c5a93ef9db4c49077b46"
+  "status": "published",
+  "canonical": "qiita",
+  "item_id": "1df29b844478f9df5960",
+  "url": "https://qiita.com/yuji-arakawa/items/1df29b844478f9df5960",
+  "title": "はじめてのインデータベースAI～ベクトル検索・RAGからAIエージェントまで～",
+  "updated_at": "2026-10-21T16:34:15+09:00",
+  "body_sha256": "36c30c9a54b75c8754ad95b80481c0997a8591b9d9ce1de1486ab9a86747cf78",
+  "synced_at": "2026-10-21T07:39:43.891692+00:00"
 }

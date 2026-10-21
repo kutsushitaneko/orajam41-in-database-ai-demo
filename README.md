@@ -4,7 +4,7 @@ Autonomous AI Database 26aiで、DB内の埋め込みモデル、ベクトル検
 
 ## 最初に読むもの
 
-[記事本文](article/qiita.md)は初期公開時の原稿で、現在のコードとは一部説明が異なります。最新版のQiita記事を公開後、本文を同期します。それまでは以下の手順書とSQL・Pythonコードを参照してください。Qiita公開後はQiita側を本文の原本とし、このファイルをミラーとして更新します。
+解説は[Qiita記事](https://qiita.com/yuji-arakawa/items/1df29b844478f9df5960)をご覧ください。[リポジトリ内の本文](article/qiita.md)はQiitaから取得したミラーです。本文の原本はQiitaで管理し、コードや手順書はこのリポジトリで更新します。
 
 既存のAutonomous AI Database 26ai、OCIの設定権限、Python 3.12、uv、VS Code SQL Developerを用意してください。教材の接続先チェックはDB名`arakawalab`とユーザー名`orajam41user`を前提としています。ほかの名前で使う場合は、接続先チェック・SQL・設定例を合わせて変更する必要があります。
 
