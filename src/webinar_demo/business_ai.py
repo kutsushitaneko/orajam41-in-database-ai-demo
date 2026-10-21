@@ -25,7 +25,7 @@ Only explain steps supported by relevant returned documents. Do not invent contr
 Finish with concise Japanese text and document citations such as [KB001]. Do not output JSON.
 Include an exact supporting sentence from a returned document inside Japanese quotation marks 「」.
 If no documents are returned or the device is not visible, say that no accessible evidence was found.
-Do not include contract advice in claims; the application displays authoritative contract facts separately.
+Include the authoritative contract facts in the final answer, using is_active, onsite_eligible, eligibility_reason and approval_required returned by the contract tool. Do not recalculate eligibility. Combine these facts with relevant customer-specific knowledge instructions. Distinguish an eligible visit proposal from an approved or booked visit.
 An expired or remote-only contract does NOT prevent giving technical steps from knowledge. Do not try to arrange a visit.
 """
 
@@ -62,7 +62,7 @@ def setup(conn, values):
             ("TOOL","OJ41_LOOKUP_CONTRACT",dict(instruction="Look up the specified device contract. Call once; use exactly the device ID in the request.",function="OJ41_CONTRACT_TOOL")),
             ("TOOL","OJ41_SEARCH_KNOWLEDGE",dict(instruction="Search scoped knowledge for the specified device and the original request. Call once with the exact device ID.",function="OJ41_KNOWLEDGE_TOOL")),
             ("AGENT","OJ41_SUPPORT_AGENT",dict(profile_name=PROFILE,role=ROLE,enable_human_tool=False)),
-            ("TASK","OJ41_SUPPORT_TASK",dict(instruction="Handle this request using both tools once. If documents exist, finish with concise Japanese technical steps, [KBnnn] citations and an exact supporting sentence enclosed in Japanese quotation marks. If documents are empty, finish immediately saying no accessible evidence was found, without citations or quotes. Use the framework completion mechanism: {query}",tools=["OJ41_LOOKUP_CONTRACT","OJ41_SEARCH_KNOWLEDGE"])),
+            ("TASK","OJ41_SUPPORT_TASK",dict(instruction='Call both tools exactly once. Produce a Japanese response integrating their results: (1) technical troubleshooting supported by returned documents, (2) customer-specific contact steps when present, (3) onsite support eligibility based only on contract tool fields, including the reference date, and (4) required approval and next action. Cite the relevant document IDs and quote an exact supporting sentence. Never invent missing information or claim a visit has been approved or booked. If onsite_eligible is N or unknown, do not offer it as an eligible visit. If no documents are returned, state the lack of documentary evidence. Finish using the framework completion mechanism. Request: {query} Do not add general troubleshooting knowledge: every technical action must be explicitly present in a returned document. If onsite_eligible is N or unknown, explain the reason and omit any instruction to seek visit approval; approval_required alone does not grant eligibility. Only label a contact instruction customer-specific if the returned text actually identifies that customer. Present contract values in plain Japanese rather than raw field names.',tools=["OJ41_LOOKUP_CONTRACT","OJ41_SEARCH_KNOWLEDGE"])),
             ("TEAM",TEAM,dict(agents=[dict(name="OJ41_SUPPORT_AGENT",task="OJ41_SUPPORT_TASK")],process="sequential",long_term_memory_length=1)),
         ]
         views={"TOOL":"USER_AI_AGENT_TOOLS","AGENT":"USER_AI_AGENTS","TASK":"USER_AI_AGENT_TASKS","TEAM":"USER_AI_AGENT_TEAMS"}
@@ -133,7 +133,11 @@ def validate_trace(raw, trace):
         normalized=lambda s: re.sub(r"\s+"," ",s).strip()
         if not any(len(q)>=8 and any(normalized(q) in normalized(sources[i]) for i in ids) for q in quotes):
             raise ValueError("回答に原文引用がありません。")
-        if re.search(r"訪問確定|予約済|手配済",body): raise ValueError("承認前の確約を含みます。")
+        commitment_text=body
+        for quote in quotes:
+            if len(quote)>=8 and any(normalized(quote) in normalized(sources[i]) for i in ids):
+                commitment_text=commitment_text.replace("「"+quote+"」", "")
+        if re.search(r"訪問確定|予約済|手配済",commitment_text): raise ValueError("承認前の確約を含みます。")
         answer=dict(status="answered",claims=[],text=body,citations=sorted(ids))
     if not docs and answer["status"]!="insufficient": raise ValueError("根拠なしの回答です。")
     # Authoritative contract data is taken from the tool, never from generated prose.
@@ -152,9 +156,12 @@ def _run_agent(conn, device, question):
     start=time.perf_counter()
     conn.call_timeout=180000
     with conn.cursor() as cur:
-        cur.execute("BEGIN OJ41_AGENT_CTX.start_run(:d,:q,:r); DBMS_CLOUD_AI_AGENT.SET_TEAM(:t); END;",d=device,q=question,r=run_id,t=TEAM)
-        cur.execute("SELECT DBMS_CLOUD_AI_AGENT.RUN_TEAM(team_name=>:t,user_prompt=>:q) FROM dual",
-                    t=TEAM,q=f"Device ID: {device}. Question: {question}")
+        cur.execute("BEGIN OJ41_AGENT_CTX.start_run(:d,:q,:r); END;",d=device,q=question,r=run_id)
+        cur.execute("SELECT DBMS_CLOUD_AI.CREATE_CONVERSATION() FROM dual")
+        conversation_id=cur.fetchone()[0]
+        cur.execute("SELECT DBMS_CLOUD_AI_AGENT.RUN_TEAM(team_name=>:t,user_prompt=>:q,params=>:p) FROM dual",
+                    t=TEAM,q=f"Device ID: {device}. Question: {question}",
+                    p=json.dumps({"conversation_id":conversation_id}))
         raw=text(cur.fetchone()[0])
         cur.execute("SELECT OJ41_AGENT_CTX.trace FROM dual")
         trace=json.loads(text(cur.fetchone()[0]))
@@ -176,7 +183,7 @@ def run_agent(conn, device, question):
         return _run_agent(conn, device, question)
     finally:
         with conn.cursor() as cur:
-            cur.execute("BEGIN OJ41_AGENT_CTX.clear_run; DBMS_CLOUD_AI_AGENT.CLEAR_TEAM; END;")
+            cur.execute("BEGIN OJ41_AGENT_CTX.clear_run; DBMS_CLOUD_AI.CLEAR_CONVERSATION_ID; END;")
 
 
 def main():

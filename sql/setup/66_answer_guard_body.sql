@@ -52,6 +52,7 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
     docs JSON_ARRAY_T; doc JSON_OBJECT_T;
     outer_obj JSON_OBJECT_T; e JSON_ELEMENT_T;
     answer CLOB := p_answer;
+    commitment_text CLOB;
     checked CLOB;
     result JSON_OBJECT_T := JSON_OBJECT_T();
     id VARCHAR2(30); quote VARCHAR2(32767);
@@ -86,7 +87,21 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
     END IF;
     BEGIN outer_obj := JSON_OBJECT_T.parse(answer);
     EXCEPTION WHEN OTHERS THEN outer_obj := NULL; END;
-    IF REGEXP_LIKE(answer,'訪問確定|予約済|手配済') THEN fail('Unapproved commitment'); END IF;
+    -- Exclude only quotes that match a returned, cited document.
+    commitment_text:=answer;
+    FOR i IN 1..REGEXP_COUNT(answer,'「[^「」]+」') LOOP
+      quote:=REGEXP_SUBSTR(answer,'「([^「」]+)」',1,i,NULL,1);
+      IF LENGTH(quote)>=8 THEN
+        FOR j IN 0..docs.get_size()-1 LOOP
+          doc:=TREAT(docs.get(j) AS JSON_OBJECT_T);
+          IF INSTR(answer,doc.get_string('doc_id'))>0 AND
+             DBMS_LOB.INSTR(REGEXP_REPLACE(doc.get_clob('text'),'[[:space:]]+',' '),REGEXP_REPLACE(quote,'[[:space:]]+',' '))>0 THEN
+            commitment_text:=REPLACE(commitment_text,'「'||quote||'」','');
+          END IF;
+        END LOOP;
+      END IF;
+    END LOOP;
+    IF REGEXP_LIKE(commitment_text,'訪問確定|予約済|手配済') THEN fail('Unapproved commitment'); END IF;
     IF outer_obj IS NOT NULL AND outer_obj.has('claims') THEN
       checked := validate_json(answer,docs.to_clob());
       result.put('draft',JSON_OBJECT_T.parse(checked));

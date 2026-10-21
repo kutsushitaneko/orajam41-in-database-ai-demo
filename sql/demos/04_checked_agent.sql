@@ -3,7 +3,7 @@
 DECLARE r CLOB;
 BEGIN
   r:=OJ41_CHECKED_AGENT.run('SR001','DEV001',
-    '管理画面が開かない。確認手順と現地保守の対応案を示して。');
+    '管理画面が開かない。最初に何を確認し、誰へ連絡すればよいですか。現地保守を頼めますか。');
   OJ41_ANSWER_GUARD.print_clob(r);
 END;
 /
