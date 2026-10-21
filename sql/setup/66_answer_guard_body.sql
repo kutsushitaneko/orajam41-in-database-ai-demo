@@ -49,7 +49,7 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
   FUNCTION validate_agent(p_answer CLOB, p_trace CLOB, p_run_id VARCHAR2) RETURN CLOB IS
     events JSON_ARRAY_T := JSON_ARRAY_T.parse(p_trace);
     event JSON_OBJECT_T; r JSON_OBJECT_T; contract JSON_OBJECT_T; knowledge JSON_OBJECT_T;
-    docs JSON_ARRAY_T; doc JSON_OBJECT_T;
+    docs JSON_ARRAY_T := JSON_ARRAY_T(); batch_docs JSON_ARRAY_T; doc JSON_OBJECT_T;
     outer_obj JSON_OBJECT_T; e JSON_ELEMENT_T;
     answer CLOB := p_answer;
     commitment_text CLOB;
@@ -84,14 +84,13 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
           IF required_string(r,'onsite_eligible') NOT IN ('Y','N') THEN fail('Missing eligibility decision'); END IF;
         END IF;
       ELSIF event.get_string('tool')='knowledge' THEN
-        IF knowledge IS NOT NULL THEN
-          previous_json:=knowledge.to_clob(); actual_json:=r.to_clob();
-          SELECT CASE WHEN JSON_EQUAL(previous_json,actual_json) THEN 1 ELSE 0 END INTO n FROM dual;
-          IF n<>1 THEN fail('Conflicting document evidence'); END IF;
-        END IF;
         knowledge:=r; nk:=nk+1; tool_name:='OJ41_SEARCH_KNOWLEDGE';
         e:=r.get('documents');
         IF e IS NULL OR NOT e.is_array() THEN fail('Missing document search result'); END IF;
+        batch_docs:=r.get_array('documents');
+        FOR j IN 0..batch_docs.get_size()-1 LOOP
+          docs.append(batch_docs.get(j));
+        END LOOP;
       ELSE fail('Unexpected evidence type'); END IF;
       -- Match each evidence result to a distinct successful framework invocation.
       matched:=FALSE; expected_json:=r.to_clob();
@@ -125,7 +124,6 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
     SELECT COUNT(*) INTO n FROM USER_AI_AGENT_TOOL_HISTORY
       WHERE task_name='OJ41_SUPPORT_TASK' AND INSTR(output,p_run_id)>0;
     IF n<>events.get_size() THEN fail('Unmatched framework history'); END IF;
-    docs := knowledge.get_array('documents');
     BEGIN outer_obj := JSON_OBJECT_T.parse(answer);
     EXCEPTION WHEN OTHERS THEN outer_obj := NULL; END;
     IF outer_obj IS NOT NULL AND outer_obj.has('result') THEN

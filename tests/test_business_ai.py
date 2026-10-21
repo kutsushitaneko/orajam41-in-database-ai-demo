@@ -82,6 +82,18 @@ def test_repeated_consistent_read_is_allowed():
     assert result["action_status"]=="not_executed"
 
 
+def test_different_search_results_are_combined_and_verified():
+    events=trace()
+    extra=trace()[1]
+    extra["result"]["documents"]=[dict(doc_id="KB012",text="障害ログ収集後、運用責任者へ連絡します。")]
+    events.append(extra)
+    raw='「電源ランプとLANケーブルを確認します。」[KB001]。「障害ログ収集後、運用責任者へ連絡します。」[KB012]'
+    assert validate_trace(raw,events)["draft"]["citations"]==["KB001","KB012"]
+    validate_history(events,history(events),"run-1","DEV001")
+    with pytest.raises(ValueError):
+        validate_trace(raw,events[:2])
+
+
 def test_plain_answer_and_whitespace_normalization():
     events=trace()
     events[1]["result"]["documents"][0]["text"]="確認手順\n電源ランプとLANケーブルを確認します。"

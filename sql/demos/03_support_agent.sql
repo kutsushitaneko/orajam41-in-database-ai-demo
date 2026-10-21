@@ -1,14 +1,15 @@
 -- ORAJAM41USER. Enable DBMS Output. Execute the entire block in a fresh session.
 DECLARE
   r CLOB;
+  l_question VARCHAR2(800) := '管理画面が開かない。最初に何を確認し、誰へ連絡すればよいですか。現地保守を頼めますか。';
   l_conversation_id VARCHAR2(4000);
 BEGIN
   OJ41_CASE_CTX.open_case('SR001');
-  OJ41_AGENT_CTX.start_run('DEV001','管理画面が開かない。確認手順と対応案を示して。',RAWTOHEX(SYS_GUID()));
+  OJ41_AGENT_CTX.start_run('DEV001',l_question,RAWTOHEX(SYS_GUID()));
   l_conversation_id := DBMS_CLOUD_AI.CREATE_CONVERSATION();
   r := DBMS_CLOUD_AI_AGENT.RUN_TEAM(
     team_name=>'OJ41_SUPPORT_TEAM',
-    user_prompt=>'Device ID: DEV001. 管理画面が開かない。最初に何を確認し、誰へ連絡すればよいですか。現地保守を頼めますか。根拠文書IDと原文引用を含めてください。',
+    user_prompt=>'Device ID: DEV001. '||l_question||'根拠文書IDと原文引用を含めてください。',
     params=>'{"conversation_id":"'||l_conversation_id||'"}');
   DBMS_OUTPUT.PUT_LINE(DBMS_LOB.SUBSTR(r,16000,1));
   r := OJ41_AGENT_CTX.trace;

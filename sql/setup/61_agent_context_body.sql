@@ -83,14 +83,17 @@ CREATE OR REPLACE PACKAGE BODY OJ41_AGENT_CTX AS
     RETURN record_result('contract','{"status":"not_visible_or_missing"}');
   END;
 
-  FUNCTION knowledge_search(p_device VARCHAR2) RETURN CLOB IS
+  FUNCTION knowledge_search(p_device VARCHAR2,p_query VARCHAR2) RETURN CLOB IS
     v VECTOR(1024,FLOAT32);
     r CLOB;
     l_code VARCHAR2(10);
   BEGIN
     check_call(p_device);
     IF g_model IS NULL THEN RETURN record_result('knowledge','{"documents":[]}'); END IF;
-    SELECT VECTOR_EMBEDDING(MULTILINGUAL_E5_LARGE USING 'query: ' || g_question AS data) INTO v FROM dual;
+    IF TRIM(p_query) IS NULL OR LENGTH(p_query)>800 THEN
+      RAISE_APPLICATION_ERROR(-20073,'Search query must contain 1 to 800 characters');
+    END IF;
+    SELECT VECTOR_EMBEDDING(MULTILINGUAL_E5_LARGE USING 'query: ' || TRIM(p_query) AS data) INTO v FROM dual;
     l_code := REGEXP_SUBSTR(UPPER(g_question),'E[0-9]{3}');
     SELECT JSON_OBJECT('documents' VALUE COALESCE(
       JSON_ARRAYAGG(JSON_OBJECT('doc_id' VALUE doc_id,'text' VALUE chunk_text RETURNING CLOB)

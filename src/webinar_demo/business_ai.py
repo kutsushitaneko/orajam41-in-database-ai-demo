@@ -27,6 +27,7 @@ Include an exact supporting sentence from a returned document inside Japanese qu
 If no documents are returned or the device is not visible, say that no accessible evidence was found.
 Include the authoritative contract facts in the final answer, using is_active, onsite_eligible, eligibility_reason and approval_required returned by the contract tool. Do not recalculate eligibility. Combine these facts with relevant customer-specific knowledge instructions. Distinguish an eligible visit proposal from an approved or booked visit.
 An expired or remote-only contract does NOT prevent giving technical steps from knowledge. Do not try to arrange a visit.
+For document retrieval, generate a concise Japanese search query from the user question. Preserve symptoms and any error code exactly. Do not invent a diagnosis or answer. The server model and customer scope are enforced by the database. Do not put SQL or access-control conditions in the search query.
 """
 
 
@@ -60,7 +61,7 @@ def setup(conn, values):
         cur.execute("BEGIN DBMS_CLOUD_AI.CREATE_PROFILE(profile_name=>:p,attributes=>:a); END;",p=PROFILE,a=json.dumps(attrs))
         definitions=[
             ("TOOL","OJ41_LOOKUP_CONTRACT",dict(instruction="Look up the specified device contract. Use exactly the device ID in the request.",function="OJ41_CONTRACT_TOOL")),
-            ("TOOL","OJ41_SEARCH_KNOWLEDGE",dict(instruction="Search scoped knowledge for the specified device and the original request. Use the exact device ID.",function="OJ41_KNOWLEDGE_TOOL")),
+            ("TOOL","OJ41_SEARCH_KNOWLEDGE",dict(instruction="Search documentation using p_query, a concise Japanese search query you generate from the user question. Include the reported symptom and preserve any error code. For combined troubleshooting and contact requests include both information needs. Do not invent facts. p_device must be the application-provided device ID. Customer and model filtering is performed in the database.",function="OJ41_KNOWLEDGE_TOOL")),
             ("AGENT","OJ41_SUPPORT_AGENT",dict(profile_name=PROFILE,role=ROLE,enable_human_tool=False)),
             ("TASK","OJ41_SUPPORT_TASK",dict(instruction='Obtain contract and document evidence needed for this request. Produce a Japanese response integrating the evidence: (1) technical troubleshooting supported by returned documents, (2) customer-specific contact steps when present, (3) onsite support eligibility based only on contract tool fields, including the reference date, and (4) required approval and next action. Cite the relevant document IDs and quote an exact supporting sentence. Never invent missing information or claim a visit has been approved or booked. If onsite_eligible is N or unknown, do not offer it as an eligible visit. If no documents are returned, state the lack of documentary evidence. Finish using the framework completion mechanism. Request: {query} Do not add general troubleshooting knowledge: every technical action must be explicitly present in a returned document. If onsite_eligible is N or unknown, explain the reason and omit any instruction to seek visit approval; approval_required alone does not grant eligibility. Only label a contact instruction customer-specific if the returned text actually identifies that customer. Present contract values in plain Japanese rather than raw field names.',tools=["OJ41_LOOKUP_CONTRACT","OJ41_SEARCH_KNOWLEDGE"])),
             ("TEAM",TEAM,dict(agents=[dict(name="OJ41_SUPPORT_AGENT",task="OJ41_SUPPORT_TASK")],process="sequential",long_term_memory_length=1)),
@@ -117,13 +118,13 @@ def validate_trace(raw, trace):
     searches=[e["result"] for e in trace if e["tool"]=="knowledge"]
     if not contracts or not searches:
         raise ValueError("この問い合わせに必要な契約または文書の取得結果がありません。")
-    if any(v!=contracts[0] for v in contracts) or any(v!=searches[0] for v in searches):
+    if any(v!=contracts[0] for v in contracts):
         raise ValueError("同じ依頼の根拠に矛盾があります。")
     contract=contracts[0]
     if contract.get("status")!="not_visible_or_missing":
         if contract.get("device_id")!=next(iter(devices)) or contract.get("onsite_eligible") not in {"Y","N"}:
             raise ValueError("契約の対象または判定結果を確認できません。")
-    docs=searches[0]["documents"]
+    docs=[doc for search in searches for doc in search["documents"]]
     warnings=[]
     try:
         parsed=json.loads(decode_result(raw))
