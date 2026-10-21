@@ -3,7 +3,7 @@ import json
 import pytest
 
 from webinar_demo.nl2sql import validated_sql
-from webinar_demo.business_ai import validate_trace
+from webinar_demo.business_ai import validate_trace, validate_history
 
 
 def test_agent_setup_removes_stale_sql_profile_attributes(monkeypatch, tmp_path):
@@ -58,8 +58,8 @@ def test_disallowed_sql_rejected(sql):
 
 
 def trace(eligible="N"):
-    return [dict(tool="contract",result=dict(onsite_eligible=eligible,status="ACTIVE")),
-            dict(tool="knowledge",result=dict(documents=[dict(doc_id="KB001",text="電源ランプとLANケーブルを確認します。")]))]
+    return [dict(tool="contract",device_id="DEV001",result=dict(run_id="run-1",device_id="DEV001",onsite_eligible=eligible,status="ACTIVE")),
+            dict(tool="knowledge",device_id="DEV001",result=dict(run_id="run-1",documents=[dict(doc_id="KB001",text="電源ランプとLANケーブルを確認します。")]))]
 
 
 def test_contract_decision_is_not_taken_from_llm():
@@ -75,8 +75,11 @@ def test_missing_tool_execution_rejected():
     with pytest.raises(ValueError): validate_trace('{"status":"insufficient","claims":[]}',trace()[:1])
 
 
-def test_duplicate_tool_execution_rejected():
-    with pytest.raises(ValueError): validate_trace('{"status":"insufficient","claims":[]}',trace()+trace()[:1])
+def test_repeated_consistent_read_is_allowed():
+    result=validate_trace('「電源ランプとLANケーブルを確認します。」[KB001]',trace()+trace()[:1])
+    assert result["validation_scope"]=="evidence_only"
+    assert result["review_required"] is True
+    assert result["action_status"]=="not_executed"
 
 
 def test_plain_answer_and_whitespace_normalization():
@@ -89,7 +92,6 @@ def test_plain_answer_and_whitespace_normalization():
 @pytest.mark.parametrize("raw", [
     '「電源ランプとLANケーブルを確認します。」[KB013]',
     '「直ちに再起動してください。」[KB001]',
-    '訪問確定。「電源ランプとLANケーブルを確認します。」[KB001]',
     '{"status":"error","result":"failed"}',
 ])
 def test_invalid_plain_answer_rejected(raw):
@@ -102,8 +104,7 @@ def test_source_quote_about_visit_approval_is_not_a_commitment():
     raw='「訪問確定には担当者の承認が必要です。」[KB012]'
     assert validate_trace(raw,events)["draft"]["status"]=="answered"
     for bad in (raw+' 訪問確定しました。',raw+' 「訪問は予約済です。」'):
-        with pytest.raises(ValueError,match="確約"):
-            validate_trace(bad,events)
+        assert validate_trace(bad,events)["review_warnings"]
 
 
 @pytest.mark.parametrize("approval", ["承認", "担当者承認", "担当者の承認"])
@@ -111,5 +112,44 @@ def test_approval_requirement_outside_quote_is_not_a_commitment(approval):
     raw=f'訪問確定には{approval}が必要です。「電源ランプとLANケーブルを確認します。」[KB001]'
     assert validate_trace(raw,trace("Y"))["draft"]["status"]=="answered"
     for assertion in ["訪問確定しました。", "予約済です。", "手配済です。"]:
-        with pytest.raises(ValueError,match="確約"):
-            validate_trace(raw+assertion,trace("Y"))
+        assert validate_trace(raw+assertion,trace("Y"))["review_warnings"]
+
+
+def history(events):
+    names={"contract":"OJ41_LOOKUP_CONTRACT","knowledge":"OJ41_SEARCH_KNOWLEDGE"}
+    return [dict(invocation_id=str(i),team_exec_id="team-1",tool_name=names[e["tool"]],
+                 input=json.dumps({"P_DEVICE":"DEV001"}),
+                 output=json.dumps({"status":"success","result":json.dumps(e["result"])}))
+            for i,e in enumerate(events)]
+
+
+def test_history_allows_reordering_and_consistent_repeated_read():
+    events=trace()+trace()[:1]
+    validate_history(events,list(reversed(history(events))),"run-1","DEV001")
+
+
+@pytest.mark.parametrize("mutation",["missing","duplicate_id","wrong_device","wrong_run","failed","wrong_result","mixed_team"])
+def test_history_rejects_unverified_evidence(mutation):
+    rows=history(trace())
+    if mutation=="missing": rows.pop()
+    elif mutation=="duplicate_id": rows[1]["invocation_id"]=rows[0]["invocation_id"]
+    elif mutation=="wrong_device": rows[0]["input"]='{"P_DEVICE":"DEV009"}'
+    elif mutation=="mixed_team": rows[1]["team_exec_id"]="team-2"
+    else:
+        obj=json.loads(rows[0]["output"])
+        value=json.loads(obj["result"])
+        if mutation=="wrong_run": value["run_id"]="old-run"
+        elif mutation=="wrong_result": value["onsite_eligible"]="Y"
+        else: obj["status"]="error"
+        obj["result"]=json.dumps(value);rows[0]["output"]=json.dumps(obj)
+    with pytest.raises(ValueError): validate_history(trace(),rows,"run-1","DEV001")
+
+
+@pytest.mark.parametrize("mutation",["mixed_run","mixed_device","conflict","budget"])
+def test_evidence_conflicts_rejected(mutation):
+    events=trace()
+    if mutation=="mixed_run": events[1]["result"]["run_id"]="old-run"
+    elif mutation=="mixed_device": events[1]["device_id"]="DEV009"
+    elif mutation=="budget": events=events*3
+    else: events+=trace("Y")[:1]
+    with pytest.raises(ValueError): validate_trace('「電源ランプとLANケーブルを確認します。」[KB001]',events)

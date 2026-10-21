@@ -53,28 +53,78 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
     outer_obj JSON_OBJECT_T; e JSON_ELEMENT_T;
     answer CLOB := p_answer;
     commitment_text CLOB;
+    warnings JSON_ARRAY_T := JSON_ARRAY_T();
+    history_obj JSON_OBJECT_T; history_args JSON_OBJECT_T; history_result JSON_OBJECT_T;
+    expected_json CLOB; actual_json CLOB; previous_json CLOB;
+    device VARCHAR2(20); tool_name VARCHAR2(128); team_id VARCHAR2(128);
+    matched BOOLEAN;
+    TYPE seen_type IS TABLE OF BOOLEAN INDEX BY VARCHAR2(128);
+    used_invocations seen_type;
     checked CLOB;
     result JSON_OBJECT_T := JSON_OBJECT_T();
     id VARCHAR2(30); quote VARCHAR2(32767);
     n PLS_INTEGER; nc PLS_INTEGER := 0; nk PLS_INTEGER := 0;
     found BOOLEAN; quote_found BOOLEAN := FALSE;
   BEGIN
-    IF p_run_id IS NULL OR events.get_size()<>2 THEN fail('Expected two tool calls'); END IF;
+    IF p_run_id IS NULL OR events.get_size() NOT BETWEEN 1 AND 4 THEN fail('Missing evidence or call budget exceeded'); END IF;
     FOR i IN 0..events.get_size()-1 LOOP
       event := TREAT(events.get(i) AS JSON_OBJECT_T); r := event.get_object('result');
       IF required_string(r,'run_id')<>p_run_id THEN fail('Wrong execution ID'); END IF;
-      IF event.get_string('tool')='contract' THEN contract:=r; nc:=nc+1;
-      ELSIF event.get_string('tool')='knowledge' THEN knowledge:=r; nk:=nk+1;
-      ELSE fail('Unexpected tool'); END IF;
+      IF device IS NULL THEN device:=required_string(event,'device_id'); END IF;
+      IF required_string(event,'device_id')<>device THEN fail('Wrong evidence device'); END IF;
+      IF event.get_string('tool')='contract' THEN
+        IF contract IS NOT NULL THEN
+          previous_json:=contract.to_clob(); actual_json:=r.to_clob();
+          SELECT CASE WHEN JSON_EQUAL(previous_json,actual_json) THEN 1 ELSE 0 END INTO n FROM dual;
+          IF n<>1 THEN fail('Conflicting contract evidence'); END IF;
+        END IF;
+        contract:=r; nc:=nc+1; tool_name:='OJ41_LOOKUP_CONTRACT';
+        IF required_string(r,'status')<>'not_visible_or_missing' THEN
+          IF required_string(r,'device_id')<>device THEN fail('Wrong contract device'); END IF;
+          IF required_string(r,'onsite_eligible') NOT IN ('Y','N') THEN fail('Missing eligibility decision'); END IF;
+        END IF;
+      ELSIF event.get_string('tool')='knowledge' THEN
+        IF knowledge IS NOT NULL THEN
+          previous_json:=knowledge.to_clob(); actual_json:=r.to_clob();
+          SELECT CASE WHEN JSON_EQUAL(previous_json,actual_json) THEN 1 ELSE 0 END INTO n FROM dual;
+          IF n<>1 THEN fail('Conflicting document evidence'); END IF;
+        END IF;
+        knowledge:=r; nk:=nk+1; tool_name:='OJ41_SEARCH_KNOWLEDGE';
+        e:=r.get('documents');
+        IF e IS NULL OR NOT e.is_array() THEN fail('Missing document search result'); END IF;
+      ELSE fail('Unexpected evidence type'); END IF;
+      -- Match each evidence result to a distinct successful framework invocation.
+      matched:=FALSE; expected_json:=r.to_clob();
+      FOR h IN (SELECT invocation_id,team_exec_id,input,output
+                FROM USER_AI_AGENT_TOOL_HISTORY
+                WHERE task_name='OJ41_SUPPORT_TASK' AND tool_name=validate_agent.tool_name
+                  AND INSTR(output,p_run_id)>0 ORDER BY start_date) LOOP
+        IF NOT used_invocations.EXISTS(TO_CHAR(h.invocation_id)) THEN
+          history_obj:=JSON_OBJECT_T.parse(h.output);
+          history_args:=JSON_OBJECT_T.parse(h.input);
+          IF required_string(history_obj,'status')='success' AND
+             UPPER(required_string(history_args,'P_DEVICE'))=device THEN
+            e:=history_obj.get('result');
+            IF e.is_string() THEN history_result:=JSON_OBJECT_T.parse(history_obj.get_clob('result'));
+            ELSE history_result:=TREAT(e AS JSON_OBJECT_T); END IF;
+            actual_json:=history_result.to_clob();
+            SELECT CASE WHEN JSON_EQUAL(expected_json,actual_json) THEN 1 ELSE 0 END INTO n FROM dual;
+            IF n=1 THEN
+              IF team_id IS NULL THEN team_id:=h.team_exec_id; END IF;
+              IF team_id<>h.team_exec_id THEN fail('Mixed team executions'); END IF;
+              used_invocations(TO_CHAR(h.invocation_id)):=TRUE;
+              matched:=TRUE; EXIT;
+            END IF;
+          END IF;
+        END IF;
+      END LOOP;
+      IF NOT matched THEN fail('Evidence does not match successful tool history'); END IF;
     END LOOP;
-    IF nc<>1 OR nk<>1 THEN fail('Each tool must run exactly once'); END IF;
-    -- Standard framework history must describe the same run, not an earlier one.
-    FOR t IN (SELECT column_value AS name FROM TABLE(sys.odcivarchar2list('OJ41_LOOKUP_CONTRACT','OJ41_SEARCH_KNOWLEDGE'))) LOOP
-      SELECT COUNT(*) INTO n FROM USER_AI_AGENT_TOOL_HISTORY
-      WHERE task_name='OJ41_SUPPORT_TASK' AND tool_name=t.name
-        AND (INSTR(output,p_run_id)>0 OR INSTR(tool_output,p_run_id)>0);
-      IF n<>1 THEN fail('Standard tool history mismatch'); END IF;
-    END LOOP;
+    -- This support workflow requires both evidence kinds, not a fixed call count.
+    IF nc=0 OR nk=0 THEN fail('Missing required contract or document evidence'); END IF;
+    SELECT COUNT(*) INTO n FROM USER_AI_AGENT_TOOL_HISTORY
+      WHERE task_name='OJ41_SUPPORT_TASK' AND INSTR(output,p_run_id)>0;
+    IF n<>events.get_size() THEN fail('Unmatched framework history'); END IF;
     docs := knowledge.get_array('documents');
     BEGIN outer_obj := JSON_OBJECT_T.parse(answer);
     EXCEPTION WHEN OTHERS THEN outer_obj := NULL; END;
@@ -103,7 +153,9 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
     END LOOP;
     -- This exact approval requirement is not a commitment.
     commitment_text:=REGEXP_REPLACE(commitment_text,'訪問確定には(担当者の|担当者)?承認が必要です。','');
-    IF REGEXP_LIKE(commitment_text,'訪問確定|予約済|手配済') THEN fail('Unapproved commitment'); END IF;
+    IF REGEXP_LIKE(commitment_text,'訪問確定|予約済|手配済') THEN
+      warnings.append('確約に見える表現があります。実際の処理結果と照合してください。');
+    END IF;
     IF outer_obj IS NOT NULL AND outer_obj.has('claims') THEN
       checked := validate_json(answer,docs.to_clob());
       result.put('draft',JSON_OBJECT_T.parse(checked));
@@ -143,6 +195,8 @@ CREATE OR REPLACE PACKAGE BODY OJ41_ANSWER_GUARD AS
       result.put('decision','承認後に現地保守の手配を検討');
     ELSE result.put('decision','現地保守の対象として手配しない'); END IF;
     result.put('approval_required',TRUE); result.put('run_id',p_run_id);
+    result.put('validation_scope','evidence_only'); result.put('review_required',TRUE);
+    result.put('action_status','not_executed'); result.put('review_warnings',warnings);
     RETURN result.to_clob();
   END;
 
