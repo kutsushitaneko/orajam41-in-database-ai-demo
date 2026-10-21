@@ -161,7 +161,7 @@ uv run --locked python -m webinar_demo.check_genai --setup --db --nl2sql --agent
 
 生成SQLは画面に表示し、自動実行しません。生成されたSELECTが確認用ビューと列を参照することを確認し、別に実行した正解SQLの結果41と比較します。
 
-エージェントは同じセッションで`DBMS_CLOUD_AI_AGENT.SET_TEAM`を実行してから`RUN_TEAM`を呼びます。今回の環境では、チーム設定もconversation_idの指定もない呼び出しはORA-20053になりました。単なる回答文だけで実行成功と判断せず、PL/SQL関数が設定したCLIENT_INFOとツールの実行履歴で呼び出しを確認します。
+この接続確認用テストでは、同じセッションで`DBMS_CLOUD_AI_AGENT.SET_TEAM`を実行してから`RUN_TEAM`を呼びます。本編ではRUN_TEAMへteam_nameとCREATE_CONVERSATION()で取得したconversation_idを渡すため、SET_TEAMは不要です。単なる回答文だけで実行成功と判断せず、PL/SQL関数が設定したCLIENT_INFOとツールの実行履歴で呼び出しを確認します。
 
 SQLクライアント向けの初回作成用SQLは`local/20_genai_smoke_setup.sql`に生成されます。既に作成した環境では重複作成せず、`sql/setup/30_check_genai.sql`で動作を確認してください。エージェントのSET_TEAMとRUN_TEAMは一つのPL/SQLブロックにまとめてあり、結果はクライアントのDBMS Outputで確認します。
 

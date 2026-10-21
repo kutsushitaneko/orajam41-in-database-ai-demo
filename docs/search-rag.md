@@ -58,7 +58,7 @@ uv run --locked python -m webinar_demo.rag --case-id SR001 --question 'DEV001の
 uv run --locked python -m webinar_demo.rag --case-id SR001 --question 'AX-100のE101の対処は？'
 ```
 
-処理は、閲覧範囲と機種を確認し、DBで文書を検索し、質問・確認した機種・取得した文書をOCI GenAIへ送る順です。Pythonからの呼び出しには.envのAPI署名キーを使います。モデルはxai.grok-4.3、リージョンはus-chicago-1です。今回のRAGはローカルPythonからGenAIへ接続するため、DBのリソースプリンシパルはこのLLM呼び出しには使いません。
+処理は、閲覧範囲と機種を確認し、DBで文書を検索し、質問・確認した機種・取得した文書をOCI GenAIへ送る順です。Pythonからの呼び出しには.envのAPI署名キーを使います。モデルはxai.grok-4.3、リージョンはus-chicago-1です。このPython版のRAGはローカルPythonからGenAIへ接続するため、DBのリソースプリンシパルはこのLLM呼び出しには使いません。
 
 LLMへの送信対象は質問、対象機種、最大3件の文書IDと本文です。東京のDBから取り出した情報をChicagoのLLMへ送る構成になります。パスワードやOCIの接続設定をプロンプトへ含めません。
 
