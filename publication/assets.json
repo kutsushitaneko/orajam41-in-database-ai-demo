@@ -143,5 +143,23 @@
     "path": "assets/rag-context-recall.d9bfb3f4e9fe.png",
     "sha256": "d9bfb3f4e9fe343b5b2f4f3d1963da2a5a549ae201d4a38fa4f2fcd45fa80019",
     "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/rag-context-recall.d9bfb3f4e9fe.png"
+  },
+  {
+    "source": "view-as-a-harness.png",
+    "path": "assets/view-as-a-harness.c80ce9d07760.png",
+    "sha256": "c80ce9d0776051022afd7f35254a34a4aeee1cbad4cf13f5e41b9be5e93c74bf",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/view-as-a-harness.c80ce9d07760.png"
+  },
+  {
+    "source": "nl2sql-comparison-white.png",
+    "path": "assets/nl2sql-comparison-white.3f1b3952b8f1.png",
+    "sha256": "3f1b3952b8f1cea66bf402059ce75d923999538e41e2f8c08547944bd7d89d99",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/nl2sql-comparison-white.3f1b3952b8f1.png"
+  },
+  {
+    "source": "select-ai-overview.png",
+    "path": "assets/select-ai-overview.749c97fa1e7f.png",
+    "sha256": "749c97fa1e7fd14ace46fafb91330434436fa9689ebd9bca15337297521765b3",
+    "url": "https://kutsushitaneko.github.io/orajam41-in-database-ai-demo/assets/select-ai-overview.749c97fa1e7f.png"
   }
 ]
